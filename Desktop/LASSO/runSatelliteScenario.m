@@ -95,57 +95,7 @@ function runSatelliteScenario(Year, Month, Day, Hour, Minute, Seconds, durationH
         end
     end
 
-    % Generate Ground Track Visualization
-    leadTime = seconds(duration);
-    trailTime = leadTime;
-    groundTrack(satellites, "LeadTime", leadTime, "TrailTime", trailTime);
 
-    % ======= 2D Map Ground Track Plot Over Area of Interest (AoI) ========
-    % Define Area of Interest (AoI) around Paradise, CA
-    paradise_lat = 39.7596;  % Latitude of Paradise, CA
-    paradise_lon = -121.6219; % Longitude of Paradise, CA
-
-    % Define a 200 km x 200 km AoI
-    half_side_km = 100; % 100 km half-side for a 200 km x 200 km square
-    delta_lat = half_side_km / 111; % Approximate change in degrees latitude
-    delta_lon = half_side_km / (111 * cosd(paradise_lat)); % Approximate change in degrees longitude
-
-    % Set AoI boundaries
-    lat_min = paradise_lat - delta_lat;
-    lat_max = paradise_lat + delta_lat;
-    lon_min = paradise_lon - delta_lon;
-    lon_max = paradise_lon + delta_lon;
-
-    % Plot the AoI boundaries on a 2D map
-    figure;
-    geoAx = geoaxes; % Create geographic axes for plotting
-    hold(geoAx, 'on'); % Hold on for plotting multiple elements
-
-    % Plot AoI boundaries
-    geoplot(geoAx, [lat_min, lat_min, lat_max, lat_max, lat_min], ...
-            [lon_min, lon_max, lon_max, lon_min, lon_min], 'm', 'LineWidth', 2);
-
-    % Set geographic map view to satellite
-    geobasemap(geoAx, 'satellite');
-
-    % Loop through each satellite and plot its ground track over time within the AoI
-    time_steps = time_parameters.startTime:seconds(time_parameters.steptime):time_parameters.startTime + time_parameters.duration;
-
-    for s = 1:length(satellites)
-        latitudes = [];
-        longitudes = [];
-        % Gather satellite positions over time
-        for t = 1:length(time_steps)
-            satPos = states(satellites(s), time_steps(t), 'CoordinateFrame', 'geographic');
-            latitudes = [latitudes; satPos(1)];
-            longitudes = [longitudes; satPos(2)];
-        end
-        % Plot the satellite ground track
-        geoplot(geoAx, latitudes, longitudes, 'g', 'LineWidth', 1.5);
-    end
-
-    title(geoAx, 'Satellite Ground Track Over Area of Interest (200 km x 200 km around Paradise, CA)');
-    hold(geoAx, 'off');
 
     % Play the scenario
     play(scenario);
