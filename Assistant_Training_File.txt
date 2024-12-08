@@ -1,0 +1,813 @@
+This file contains the code for several Matlab functions and files used to run the LASSO_GPT Matlab App. It is provided as a .txt file for ease of training the ChatGPT Assistant.
+
+lasso_gpt.mlapp:
+classdef lasso_gpt < matlab.apps.AppBase
+
+    % Properties that correspond to app components
+    properties (Access = public)
+        UIFigure                      matlab.ui.Figure
+        RAANOffsetEditField           matlab.ui.control.NumericEditField
+        RAANOffsetEditFieldLabel      matlab.ui.control.Label
+        ViewingAngleEditField         matlab.ui.control.NumericEditField
+        ViewingAngleEditFieldLabel    matlab.ui.control.Label
+        NumberofPlanesEditField       matlab.ui.control.NumericEditField
+        NumberofPlanesEditFieldLabel  matlab.ui.control.Label
+        AoILongitudeEditField         matlab.ui.control.NumericEditField
+        AoILongitudeEditFieldLabel    matlab.ui.control.Label
+        AoILatitudeEditField          matlab.ui.control.NumericEditField
+        AoILatitudeEditFieldLabel     matlab.ui.control.Label
+        CoverageMapButton             matlab.ui.control.Button
+        LASSOLabel                    matlab.ui.control.Label
+        OrbitPropagatorDropDown       matlab.ui.control.DropDown
+        OrbitPropagatorDropDownLabel  matlab.ui.control.Label
+        SecondsEditField              matlab.ui.control.NumericEditField
+        SecondsEditFieldLabel         matlab.ui.control.Label
+        MinuteEditField               matlab.ui.control.NumericEditField
+        MinuteEditFieldLabel          matlab.ui.control.Label
+        HourEditField                 matlab.ui.control.NumericEditField
+        HourEditFieldLabel            matlab.ui.control.Label
+        DayEditField                  matlab.ui.control.NumericEditField
+        DayEditFieldLabel             matlab.ui.control.Label
+        MonthEditField                matlab.ui.control.NumericEditField
+        MonthEditFieldLabel           matlab.ui.control.Label
+        YearEditField                 matlab.ui.control.NumericEditField
+        YearEditFieldLabel            matlab.ui.control.Label
+        SteptimeEditField             matlab.ui.control.NumericEditField
+        SteptimeEditFieldLabel        matlab.ui.control.Label
+        DurationEditField             matlab.ui.control.NumericEditField
+        DurationEditFieldLabel        matlab.ui.control.Label
+        EccentricityEditField         matlab.ui.control.NumericEditField
+        EccentricityEditFieldLabel    matlab.ui.control.Label
+        AskButton                     matlab.ui.control.Button
+        AnswerTextArea                matlab.ui.control.TextArea
+        AnswerTextAreaLabel           matlab.ui.control.Label
+        QuestionTextArea              matlab.ui.control.TextArea
+        QuestionTextAreaLabel         matlab.ui.control.Label
+        InclinationEditField          matlab.ui.control.NumericEditField
+        InclinationEditFieldLabel     matlab.ui.control.Label
+        AltitudeEditField             matlab.ui.control.NumericEditField
+        AltitudeEditFieldLabel        matlab.ui.control.Label
+        NumberofSatellitesEditField   matlab.ui.control.NumericEditField
+        NumberofSatellitesEditFieldLabel  matlab.ui.control.Label
+        RunVisualizationButton        matlab.ui.control.Button
+    end
+
+    % Callbacks that handle component events
+    methods (Access = private)
+
+        % Button pushed function: RunVisualizationButton
+        function RunVisualizationButtonPushed(app, event)
+            % Retrieve inputs from the app components
+            Year = app.YearEditField.Value;
+            Month = app.MonthEditField.Value;
+            Day = app.DayEditField.Value;
+            Hour = app.HourEditField.Value;
+            Minute = app.MinuteEditField.Value;
+            Seconds = app.SecondsEditField.Value;
+            durationHours = app.DurationEditField.Value;
+            steptimeSeconds = app.SteptimeEditField.Value;
+            Altitude = app.AltitudeEditField.Value;
+            Eccentricity = app.EccentricityEditField.Value;
+            Inclination = app.InclinationEditField.Value;
+            number_of_SATs = app.NumberofSatellitesEditField.Value;
+            number_of_planes = app.NumberofPlanesEditField.Value;
+            Orbit_Propagator = app.OrbitPropagatorDropDown.Value;
+            RAAN_offset = app.RAANOffsetEditField.Value;
+            
+            % Call the function to run the scenario
+            runSatelliteScenario(Year, Month, Day, Hour, Minute, Seconds, ...
+                durationHours, steptimeSeconds, Altitude, Eccentricity, Inclination, ...
+                number_of_SATs, number_of_planes, Orbit_Propagator, RAAN_offset);
+        end
+
+        % Button pushed function: AskButton
+        function AskButtonPushed(app, event)
+            
+        end
+
+        % Button pushed function: CoverageMapButton
+        function CoverageMapButtonPushed(app, event)
+           % Retrieve inputs from the app components
+            Year = app.YearEditField.Value;
+            Month = app.MonthEditField.Value;
+            Day = app.DayEditField.Value;
+            Hour = app.HourEditField.Value;
+            Minute = app.MinuteEditField.Value;
+            Seconds = app.SecondsEditField.Value;
+            durationHours = app.DurationEditField.Value;
+            steptimeSeconds = app.SteptimeEditField.Value;
+            Altitude = app.AltitudeEditField.Value;
+            Eccentricity = app.EccentricityEditField.Value;
+            Inclination = app.InclinationEditField.Value;
+            number_of_SATs = app.NumberofSatellitesEditField.Value;
+            number_of_planes = app.NumberofPlanesEditField.Value;
+            Orbit_Propagator = app.OrbitPropagatorDropDown.Value;
+            viewing_angle = app.ViewingAngleEditField.Value;
+
+            % Call the function to run the scenario
+            coverage_map(Year, Month, Day, Hour, Minute, Seconds, ...
+                durationHours, steptimeSeconds, Altitude, Eccentricity, Inclination, ...
+                number_of_SATs, number_of_planes, Orbit_Propagator, viewing_angle);
+        end
+    end
+
+    % Component initialization
+    methods (Access = private)
+
+        % Create UIFigure and components
+        function createComponents(app)
+
+            % Create UIFigure and hide until all components are created
+            app.UIFigure = uifigure('Visible', 'off');
+            app.UIFigure.Position = [100 100 879 578];
+            app.UIFigure.Name = 'MATLAB App';
+
+            % Create RunVisualizationButton
+            app.RunVisualizationButton = uibutton(app.UIFigure, 'push');
+            app.RunVisualizationButton.ButtonPushedFcn = createCallbackFcn(app, @RunVisualizationButtonPushed, true);
+            app.RunVisualizationButton.Position = [411 329 106 23];
+            app.RunVisualizationButton.Text = 'Run Visualization';
+
+            % Create NumberofSatellitesEditFieldLabel
+            app.NumberofSatellitesEditFieldLabel = uilabel(app.UIFigure);
+            app.NumberofSatellitesEditFieldLabel.HorizontalAlignment = 'right';
+            app.NumberofSatellitesEditFieldLabel.Position = [23 512 114 22];
+            app.NumberofSatellitesEditFieldLabel.Text = 'Number of Satellites';
+
+            % Create NumberofSatellitesEditField
+            app.NumberofSatellitesEditField = uieditfield(app.UIFigure, 'numeric');
+            app.NumberofSatellitesEditField.Position = [152 512 100 22];
+            app.NumberofSatellitesEditField.Value = 15;
+
+            % Create AltitudeEditFieldLabel
+            app.AltitudeEditFieldLabel = uilabel(app.UIFigure);
+            app.AltitudeEditFieldLabel.HorizontalAlignment = 'right';
+            app.AltitudeEditFieldLabel.Position = [267 512 46 22];
+            app.AltitudeEditFieldLabel.Text = 'Altitude';
+
+            % Create AltitudeEditField
+            app.AltitudeEditField = uieditfield(app.UIFigure, 'numeric');
+            app.AltitudeEditField.Position = [328 512 100 22];
+            app.AltitudeEditField.Value = 500;
+
+            % Create InclinationEditFieldLabel
+            app.InclinationEditFieldLabel = uilabel(app.UIFigure);
+            app.InclinationEditFieldLabel.HorizontalAlignment = 'right';
+            app.InclinationEditFieldLabel.Position = [253 471 60 22];
+            app.InclinationEditFieldLabel.Text = 'Inclination';
+
+            % Create InclinationEditField
+            app.InclinationEditField = uieditfield(app.UIFigure, 'numeric');
+            app.InclinationEditField.Position = [328 471 100 22];
+            app.InclinationEditField.Value = 45;
+
+            % Create QuestionTextAreaLabel
+            app.QuestionTextAreaLabel = uilabel(app.UIFigure);
+            app.QuestionTextAreaLabel.HorizontalAlignment = 'right';
+            app.QuestionTextAreaLabel.Position = [1 293 53 22];
+            app.QuestionTextAreaLabel.Text = 'Question';
+
+            % Create QuestionTextArea
+            app.QuestionTextArea = uitextarea(app.UIFigure);
+            app.QuestionTextArea.Position = [69 46 361 271];
+
+            % Create AnswerTextAreaLabel
+            app.AnswerTextAreaLabel = uilabel(app.UIFigure);
+            app.AnswerTextAreaLabel.HorizontalAlignment = 'right';
+            app.AnswerTextAreaLabel.Position = [441 291 45 22];
+            app.AnswerTextAreaLabel.Text = 'Answer';
+
+            % Create AnswerTextArea
+            app.AnswerTextArea = uitextarea(app.UIFigure);
+            app.AnswerTextArea.Position = [501 46 368 269];
+
+            % Create AskButton
+            app.AskButton = uibutton(app.UIFigure, 'push');
+            app.AskButton.ButtonPushedFcn = createCallbackFcn(app, @AskButtonPushed, true);
+            app.AskButton.Position = [200 11 100 23];
+            app.AskButton.Text = 'Ask';
+
+            % Create EccentricityEditFieldLabel
+            app.EccentricityEditFieldLabel = uilabel(app.UIFigure);
+            app.EccentricityEditFieldLabel.HorizontalAlignment = 'right';
+            app.EccentricityEditFieldLabel.Position = [62 471 68 22];
+            app.EccentricityEditFieldLabel.Text = 'Eccentricity';
+
+            % Create EccentricityEditField
+            app.EccentricityEditField = uieditfield(app.UIFigure, 'numeric');
+            app.EccentricityEditField.Position = [145 471 100 22];
+            app.EccentricityEditField.Value = 1e-05;
+
+            % Create DurationEditFieldLabel
+            app.DurationEditFieldLabel = uilabel(app.UIFigure);
+            app.DurationEditFieldLabel.HorizontalAlignment = 'right';
+            app.DurationEditFieldLabel.Position = [518 512 51 22];
+            app.DurationEditFieldLabel.Text = 'Duration';
+
+            % Create DurationEditField
+            app.DurationEditField = uieditfield(app.UIFigure, 'numeric');
+            app.DurationEditField.Position = [584 512 100 22];
+            app.DurationEditField.Value = 0.25;
+
+            % Create SteptimeEditFieldLabel
+            app.SteptimeEditFieldLabel = uilabel(app.UIFigure);
+            app.SteptimeEditFieldLabel.HorizontalAlignment = 'right';
+            app.SteptimeEditFieldLabel.Position = [693 512 53 22];
+            app.SteptimeEditFieldLabel.Text = 'Steptime';
+
+            % Create SteptimeEditField
+            app.SteptimeEditField = uieditfield(app.UIFigure, 'numeric');
+            app.SteptimeEditField.Position = [761 512 100 22];
+            app.SteptimeEditField.Value = 15;
+
+            % Create YearEditFieldLabel
+            app.YearEditFieldLabel = uilabel(app.UIFigure);
+            app.YearEditFieldLabel.HorizontalAlignment = 'right';
+            app.YearEditFieldLabel.Position = [541 476 28 22];
+            app.YearEditFieldLabel.Text = 'Year';
+
+            % Create YearEditField
+            app.YearEditField = uieditfield(app.UIFigure, 'numeric');
+            app.YearEditField.Position = [584 476 100 22];
+            app.YearEditField.Value = 2024;
+
+            % Create MonthEditFieldLabel
+            app.MonthEditFieldLabel = uilabel(app.UIFigure);
+            app.MonthEditFieldLabel.HorizontalAlignment = 'right';
+            app.MonthEditFieldLabel.Position = [530 443 39 22];
+            app.MonthEditFieldLabel.Text = 'Month';
+
+            % Create MonthEditField
+            app.MonthEditField = uieditfield(app.UIFigure, 'numeric');
+            app.MonthEditField.Position = [584 443 100 22];
+            app.MonthEditField.Value = 3;
+
+            % Create DayEditFieldLabel
+            app.DayEditFieldLabel = uilabel(app.UIFigure);
+            app.DayEditFieldLabel.HorizontalAlignment = 'right';
+            app.DayEditFieldLabel.Position = [543 408 26 22];
+            app.DayEditFieldLabel.Text = 'Day';
+
+            % Create DayEditField
+            app.DayEditField = uieditfield(app.UIFigure, 'numeric');
+            app.DayEditField.Position = [584 408 100 22];
+            app.DayEditField.Value = 21;
+
+            % Create HourEditFieldLabel
+            app.HourEditFieldLabel = uilabel(app.UIFigure);
+            app.HourEditFieldLabel.HorizontalAlignment = 'right';
+            app.HourEditFieldLabel.Position = [715 476 31 22];
+            app.HourEditFieldLabel.Text = 'Hour';
+
+            % Create HourEditField
+            app.HourEditField = uieditfield(app.UIFigure, 'numeric');
+            app.HourEditField.Position = [761 476 100 22];
+
+            % Create MinuteEditFieldLabel
+            app.MinuteEditFieldLabel = uilabel(app.UIFigure);
+            app.MinuteEditFieldLabel.HorizontalAlignment = 'right';
+            app.MinuteEditFieldLabel.Position = [704 443 42 22];
+            app.MinuteEditFieldLabel.Text = 'Minute';
+
+            % Create MinuteEditField
+            app.MinuteEditField = uieditfield(app.UIFigure, 'numeric');
+            app.MinuteEditField.Position = [761 443 100 22];
+
+            % Create SecondsEditFieldLabel
+            app.SecondsEditFieldLabel = uilabel(app.UIFigure);
+            app.SecondsEditFieldLabel.HorizontalAlignment = 'right';
+            app.SecondsEditFieldLabel.Position = [694 408 52 22];
+            app.SecondsEditFieldLabel.Text = 'Seconds';
+
+            % Create SecondsEditField
+            app.SecondsEditField = uieditfield(app.UIFigure, 'numeric');
+            app.SecondsEditField.Position = [761 408 100 22];
+
+            % Create OrbitPropagatorDropDownLabel
+            app.OrbitPropagatorDropDownLabel = uilabel(app.UIFigure);
+            app.OrbitPropagatorDropDownLabel.HorizontalAlignment = 'right';
+            app.OrbitPropagatorDropDownLabel.Position = [35 374 95 22];
+            app.OrbitPropagatorDropDownLabel.Text = 'Orbit Propagator';
+
+            % Create OrbitPropagatorDropDown
+            app.OrbitPropagatorDropDown = uidropdown(app.UIFigure);
+            app.OrbitPropagatorDropDown.Items = {'SGP4', 'Option 2', 'Option 3', 'Option 4'};
+            app.OrbitPropagatorDropDown.Position = [145 374 100 22];
+            app.OrbitPropagatorDropDown.Value = 'SGP4';
+
+            % Create LASSOLabel
+            app.LASSOLabel = uilabel(app.UIFigure);
+            app.LASSOLabel.Position = [460 545 44 22];
+            app.LASSOLabel.Text = 'LASSO';
+
+            % Create CoverageMapButton
+            app.CoverageMapButton = uibutton(app.UIFigure, 'push');
+            app.CoverageMapButton.ButtonPushedFcn = createCallbackFcn(app, @CoverageMapButtonPushed, true);
+            app.CoverageMapButton.Position = [541 328 100 23];
+            app.CoverageMapButton.Text = 'Coverage Map';
+
+            % Create AoILatitudeEditFieldLabel
+            app.AoILatitudeEditFieldLabel = uilabel(app.UIFigure);
+            app.AoILatitudeEditFieldLabel.HorizontalAlignment = 'right';
+            app.AoILatitudeEditFieldLabel.Position = [261 374 66 22];
+            app.AoILatitudeEditFieldLabel.Text = 'AoILatitude';
+
+            % Create AoILatitudeEditField
+            app.AoILatitudeEditField = uieditfield(app.UIFigure, 'numeric');
+            app.AoILatitudeEditField.Position = [342 374 100 22];
+            app.AoILatitudeEditField.Value = 39.7596;
+
+            % Create AoILongitudeEditFieldLabel
+            app.AoILongitudeEditFieldLabel = uilabel(app.UIFigure);
+            app.AoILongitudeEditFieldLabel.HorizontalAlignment = 'right';
+            app.AoILongitudeEditFieldLabel.Position = [470 374 77 22];
+            app.AoILongitudeEditFieldLabel.Text = 'AoILongitude';
+
+            % Create AoILongitudeEditField
+            app.AoILongitudeEditField = uieditfield(app.UIFigure, 'numeric');
+            app.AoILongitudeEditField.Position = [562 374 100 22];
+            app.AoILongitudeEditField.Value = -121.6219;
+
+            % Create NumberofPlanesEditFieldLabel
+            app.NumberofPlanesEditFieldLabel = uilabel(app.UIFigure);
+            app.NumberofPlanesEditFieldLabel.HorizontalAlignment = 'right';
+            app.NumberofPlanesEditFieldLabel.Position = [23 342 101 22];
+            app.NumberofPlanesEditFieldLabel.Text = 'Number of Planes';
+
+            % Create NumberofPlanesEditField
+            app.NumberofPlanesEditField = uieditfield(app.UIFigure, 'numeric');
+            app.NumberofPlanesEditField.Position = [139 342 100 22];
+            app.NumberofPlanesEditField.Value = 4;
+
+            % Create ViewingAngleEditFieldLabel
+            app.ViewingAngleEditFieldLabel = uilabel(app.UIFigure);
+            app.ViewingAngleEditFieldLabel.HorizontalAlignment = 'right';
+            app.ViewingAngleEditFieldLabel.Position = [21 429 80 22];
+            app.ViewingAngleEditFieldLabel.Text = 'Viewing Angle';
+
+            % Create ViewingAngleEditField
+            app.ViewingAngleEditField = uieditfield(app.UIFigure, 'numeric');
+            app.ViewingAngleEditField.Position = [116 429 100 22];
+            app.ViewingAngleEditField.Value = 45;
+
+            % Create RAANOffsetEditFieldLabel
+            app.RAANOffsetEditFieldLabel = uilabel(app.UIFigure);
+            app.RAANOffsetEditFieldLabel.HorizontalAlignment = 'right';
+            app.RAANOffsetEditFieldLabel.Position = [249 429 73 22];
+            app.RAANOffsetEditFieldLabel.Text = 'RAAN Offset';
+
+            % Create RAANOffsetEditField
+            app.RAANOffsetEditField = uieditfield(app.UIFigure, 'numeric');
+            app.RAANOffsetEditField.Position = [337 429 100 22];
+
+            % Show the figure after all components are created
+            app.UIFigure.Visible = 'on';
+        end
+    end
+
+    % App creation and deletion
+    methods (Access = public)
+
+        % Construct app
+        function app = lasso_gpt
+
+            % Create UIFigure and components
+            createComponents(app)
+
+            % Register the app with App Designer
+            registerApp(app, app.UIFigure)
+
+            if nargout == 0
+                clear app
+            end
+        end
+
+        % Code that executes before app deletion
+        function delete(app)
+
+            % Delete UIFigure when app is deleted
+            delete(app.UIFigure)
+        end
+    end
+end
+
+
+calculate_coverage.m:
+function calculateCoverage(satellites, scenario, lat_min, lat_max, lon_min, lon_max)
+    numPoints = 20; % Define the number of points along each dimension
+    latGrid = linspace(lat_min, lat_max, numPoints);
+    lonGrid = linspace(lon_min, lon_max, numPoints);
+    [latPoints, lonPoints] = meshgrid(latGrid, lonGrid);
+    gridPoints = [latPoints(:), lonPoints(:)];
+
+    number_of_SATs = length(satellites);
+    time_vector = scenario.StartTime:seconds(scenario.SampleTime):scenario.StopTime;
+
+    % Initialize coverage tracking
+    covered_points = zeros(size(gridPoints, 1), length(time_vector));
+
+    for t = 1:length(time_vector)
+        for s = 1:number_of_SATs
+            % Get satellite position at current time
+            satPos = states(satellites(s), time_vector(t), 'CoordinateFrame', 'geographic');
+            satLat = satPos(1);
+            satLon = satPos(2);
+
+            % Calculate distance to each grid point
+            for p = 1:size(gridPoints, 1)
+                pointLat = gridPoints(p, 1);
+                pointLon = gridPoints(p, 2);
+
+                % Use distanceCalculator to check coverage
+                distance = distanceCalculator(satLat, satLon, pointLat, pointLon);
+
+                % Check if within coverage radius (e.g., 3000 km)
+                if distance < 3000 % km
+                    covered_points(p, t) = 1;
+                end
+            end
+        end
+    end
+
+    % Calculate coverage percentage over time
+    coverage_percentage = sum(covered_points, 1) / size(gridPoints, 1) * 100;
+
+    % Plot coverage percentage over time
+    figure;
+    plot(time_vector, coverage_percentage);
+    xlabel('Time');
+    ylabel('Coverage Percentage (%)');
+    title('Coverage Percentage Over Time for Area of Interest');
+end
+
+coverage_map.m:
+function coverage_map(Year, Month, Day, Hour, Minute, Seconds, durationHours, steptimeSeconds, Altitude, Eccentricity, Inclination, number_of_SATs, number_of_planes, Orbit_Propagator, viewing_angle)
+
+    % Add necessary paths
+    addpath('~/Redstone_Project/RS_HL/RS_HL_01_Constellation_Scinario_Formulation/');
+
+    % Initial Epoch Definition
+    duration = hours(durationHours);
+    steptime = steptimeSeconds; % seconds
+    startTime = datetime(Year, Month, Day, Hour, Minute, Seconds);
+
+    time_parameters.startTime = startTime;
+    time_parameters.duration = duration;
+    time_parameters.steptime = steptime;
+
+    % Initialize scenario
+    scenario = scenario_initalization(time_parameters);
+
+    % Orbit Settings
+    AOP = 0; % Argument of Perigee (deg)
+
+    % Generate RAAN values for evenly spaced planes
+    RAAN_values = linspace(0, 360, number_of_planes + 1);
+    RAAN_values(end) = []; % Remove the last value to avoid overlap with 0 degrees
+
+    % Define initial orbit information
+    satellites = [];
+    satellites_per_plane = cell(1, length(RAAN_values));
+
+    for i = 1:length(RAAN_values)
+        RAAN = RAAN_values(i);
+        satellite_name = "RS-" + i;
+        orbit_information = struct('SMA', Altitude * 1000 + 6378000, ...
+                                   'ecc', Eccentricity, ...
+                                   'inc', Inclination, ...
+                                   'RAAN', RAAN, ...
+                                   'AOP', AOP);
+        satellites_orbit = single_orbit_constellation(scenario, orbit_information, number_of_SATs, Orbit_Propagator, satellite_name);
+        satellites = [satellites, satellites_orbit];
+        satellites_per_plane{i} = satellites_orbit; % Store satellites of the current plane
+    end
+
+    number_of_SATs = length(satellites);
+    time_vector = scenario.StartTime:seconds(scenario.SampleTime):scenario.StopTime;
+
+    % ======= Define Ground Stations ========
+    gs_locations = [
+        struct('Name', 'Houston', 'Latitude', 29.7604, 'Longitude', -95.3698); % Houston, TX, USA
+        struct('Name', 'Kennedy', 'Latitude', 28.5721, 'Longitude', -80.6480); % Kennedy Space Center, FL, USA
+        struct('Name', 'Madrid', 'Latitude', 40.4168, 'Longitude', -3.7038); % Madrid, Spain
+    ];
+
+    % Add ground stations to the scenario using a for loop
+    gs = []; % Initialize as an empty array
+    for i = 1:length(gs_locations)
+        gs = [gs, groundStation(scenario, ...
+            'Name', gs_locations(i).Name, ...
+            'Latitude', gs_locations(i).Latitude, ...
+            'Longitude', gs_locations(i).Longitude)];
+    end
+    number_of_gs = length(gs);
+
+    % ======= Visualization Update ========
+    % Define Area of Interest (AoI) around Paradise, CA
+    paradise_lat = 39.7596;  % Latitude of Paradise, CA
+    paradise_lon = -121.6219; % Longitude of Paradise, CA
+
+    % Define a 200 km x 200 km AoI
+    half_side_km = 100; % 100 km half-side for a 200 km x 200 km square
+    delta_lat = half_side_km / 111; % Approximate change in degrees latitude
+    delta_lon = half_side_km / (111 * cosd(paradise_lat)); % Approximate change in degrees longitude
+
+    % Set new AoI boundaries
+    lat_min = paradise_lat - delta_lat;
+    lat_max = paradise_lat + delta_lat;
+    lon_min = paradise_lon - delta_lon;
+    lon_max = paradise_lon + delta_lon;
+
+    % Create a grid of points inside the new AoI
+    numPoints = 20; % Adjust for resolution
+    latGrid = linspace(lat_min, lat_max, numPoints);
+    lonGrid = linspace(lon_min, lon_max, numPoints);
+    [latPoints, lonPoints] = meshgrid(latGrid, lonGrid);
+
+    % Calculate Coverage Radius based on Altitude and Viewing Angle
+    coverage_radius = Altitude * tand(viewing_angle); % coverage_radius in km
+
+    % Initialize Coverage Tracker
+    interval_minutes = 5; % Interval to report coverage percentage
+    required_coverage_time = 60; % 1 minute required coverage in seconds
+    coverage_time_counter = zeros(size(latPoints)); % Track coverage duration for each grid point
+    cumulative_coverage = false(size(latPoints)); % Track cumulative coverage across the entire simulation
+
+    % ======= Access and Visualization Logic ========
+    % Ground station access visualization
+    for i = 1:number_of_gs
+        ac = access(gs(i), satellites);
+        ac.LineColor = 'r';
+    end
+
+    % Satellite to satellite access visualization for each plane
+    for plane = 1:length(satellites_per_plane)
+        satellites_orbit = satellites_per_plane{plane};
+        num_sats_in_plane = length(satellites_orbit);
+        for i = 1:num_sats_in_plane
+            % Access between satellites in the same plane (next and previous)
+            if i == 1
+                ac = access(satellites_orbit(i), [satellites_orbit(2); satellites_orbit(end)]);
+                ac.LineColor = 'b';
+            elseif i == num_sats_in_plane
+                ac = access(satellites_orbit(i), [satellites_orbit(end - 1); satellites_orbit(1)]);
+                ac.LineColor = 'b';
+            else
+                ac = access(satellites_orbit(i), [satellites_orbit(i + 1); satellites_orbit(i - 1)]);
+                ac.LineColor = 'b';
+            end
+        end
+    end
+
+    % ======= Dynamic Coverage Calculation and Visualization ========
+    figure;
+    for t = 1:length(time_vector)
+        % Initialize an array to keep track of covered points at the current time
+        current_coverage = false(size(latPoints));
+
+        % Loop through each satellite
+        for s = 1:number_of_SATs
+            % Get satellite position at the current time
+            satPos = states(satellites(s), time_vector(t), 'CoordinateFrame', 'geographic');
+            satLat = satPos(1);
+            satLon = satPos(2);
+
+            % Calculate distance from each grid point to satellite
+            for i = 1:numel(latPoints)
+                pointLat = latPoints(i);
+                pointLon = lonPoints(i);
+                distance = distanceCalculator(satLat, satLon, pointLat, pointLon);
+
+                % Check if the point is within the satellite's coverage radius
+                if distance < coverage_radius % km
+                    current_coverage(i) = true;
+                    coverage_time_counter(i) = coverage_time_counter(i) + steptime; % Increment coverage time counter
+                    cumulative_coverage(i) = true; % Track cumulative coverage
+                end
+            end
+
+            % Plot satellite ground track and field of view
+            fov_radius_deg = coverage_radius / 111; % Convert coverage radius to degrees latitude
+            geoplot([satLat - fov_radius_deg, satLat + fov_radius_deg], [satLon - fov_radius_deg, satLon + fov_radius_deg], 'g', 'LineWidth', 1.5);
+        end
+
+        % Report coverage percentage every 5 minutes
+        if mod(t - 1, interval_minutes * 60 / steptime) == 0
+            % Determine which points have been covered for more than 1 minute
+            covered_for_required_time = coverage_time_counter >= required_coverage_time;
+
+            % Calculate the percentage of the AoI that meets the required coverage time
+            covered_points = sum(covered_for_required_time(:));
+            total_points = numel(latPoints);
+            coverage_percentage = (covered_points / total_points) * 100;
+
+            % Print the coverage percentage for the current interval
+            fprintf('Coverage Percentage at t = %s (Covered for > 1 min): %.2f%%\n', datestr(time_vector(t)), coverage_percentage);
+
+            % Reset the coverage time counter for the next interval
+            coverage_time_counter(:) = 0;
+        end
+
+        % ======= Dynamic Visualization of Coverage ========
+        cla; % Clear previous plot points
+        geoplot([lat_min, lat_min, lat_max, lat_max, lat_min], ...
+                [lon_min, lon_max, lon_max, lon_min, lon_min], 'm', 'LineWidth', 2);
+        hold on;
+
+        % Plot a marker for Paradise, CA
+        geoscatter(paradise_lat, paradise_lon, 100, 'g', 'filled');
+        text(paradise_lon, paradise_lat, ' Paradise, CA', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right', 'Color', 'green');
+
+        % Plot the grid points for covered (red) and uncovered (blue) areas at current time
+        geoscatter(latPoints(~current_coverage), lonPoints(~current_coverage), 20, 'b', 'filled');
+        geoscatter(latPoints(current_coverage), lonPoints(current_coverage), 20, 'r', 'filled');
+        geobasemap('satellite');
+        title(['Satellite Coverage at Time: ', datestr(time_vector(t)), ' (200 km x 200 km around Paradise, CA)']);
+        drawnow;
+    end
+
+
+    % ======= Ground Track Plotting ========
+    leadTime = seconds(duration);
+    trailTime = leadTime;
+    groundTrack(satellites, "LeadTime", leadTime, "TrailTime", trailTime);
+
+    % Play the scenario
+    %play(scenario);
+end
+
+% ======= Helper Functions ========
+% Distance Calculator Function
+function distance = distanceCalculator(lat1, lon1, lat2, lon2)
+    R = 6371; % Earth's radius in km
+    dlat = deg2rad(lat2 - lat1);
+    dlon = deg2rad(lon2 - lon1);
+    a = sin(dlat/2)^2 + cos(deg2rad(lat1)) * cos(deg2rad(lat2)) * sin(dlon/2)^2;
+    c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    distance = R * c;
+end
+
+distanceCalculator.m:
+function distance = distanceCalculator(lat1, lon1, lat2, lon2)
+    R = 6371; % Earth's radius in km
+    dlat = deg2rad(lat2 - lat1);
+    dlon = deg2rad(lon2 - lon1);
+    a = sin(dlat/2)^2 + cos(deg2rad(lat1)) * cos(deg2rad(lat2)) * sin(dlon/2)^2;
+    c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    distance = R * c;
+end
+
+runSatelliteScenario.m:
+function runSatelliteScenario(Year, Month, Day, Hour, Minute, Seconds, durationHours, steptimeSeconds, Altitude, Eccentricity, Inclination, number_of_SATs, number_of_planes, Orbit_Propagator, RAAN_offset)
+    
+    % Add necessary paths
+    addpath('~/Redstone_Project/RS_HL/RS_HL_01_Constellation_Scinario_Formulation/');
+
+    % Initial Epoch Definition
+    duration = hours(durationHours);
+    steptime = steptimeSeconds; % seconds
+    startTime = datetime(Year, Month, Day, Hour, Minute, Seconds);
+
+    time_parameters.startTime = startTime;
+    time_parameters.duration = duration;
+    time_parameters.steptime = steptime;
+    
+    % Initialize scenario
+    scenario = scenario_initalization(time_parameters);
+    
+    % Orbit Settings
+    AOP = 0; % Argument of Perigee (deg)
+    
+    % Calculate RAAN values for evenly spaced planes with offset
+    RAAN_values = linspace(0, 360, number_of_planes + 1) + RAAN_offset; % Add user-defined offset to RAAN values
+    RAAN_values = mod(RAAN_values, 360); % Ensure RAAN stays within [0, 360] degrees
+    RAAN_values(end) = []; % Remove the last value to avoid overlap with 0 degrees
+
+    % Define initial orbit information
+    orbit_information = struct('SMA', Altitude * 1000 + 6378000, ... % Semi-Major Axis in meters
+                               'ecc', Eccentricity, ...
+                               'inc', Inclination, ...
+                               'AOP', AOP);
+
+    % Generate satellite constellation for each plane
+    satellites = [];
+    satellites_per_plane = cell(1, number_of_planes); % Store satellites in each plane for reference
+    for i = 1:number_of_planes
+        orbit_information.RAAN = RAAN_values(i);
+        satellite_name = "Plane-" + i;
+        satellites_orbit = single_orbit_constellation(scenario, orbit_information, number_of_SATs, Orbit_Propagator, satellite_name);
+        satellites = [satellites, satellites_orbit];
+        satellites_per_plane{i} = satellites_orbit; % Store satellites for each plane
+    end
+    
+    % Ground Station Information
+    gs_info = ["Austin", 30.2672, -97.7431, 0;
+               "Madrid", 40.4168, -3.7038, 667;
+               "Sydney", -33.8688, 151.2093, 19];
+    
+    gs = [];
+    for i = 1:size(gs_info, 1)
+        gs = [gs, groundStation(scenario, ...
+            "Name", gs_info(i, 1), ...
+            "Latitude", str2double(gs_info(i, 2)), ...
+            "Longitude", str2double(gs_info(i, 3)), ...
+            "Altitude", str2double(gs_info(i, 4)), ...
+            "MinElevationAngle", 15)];
+    end
+
+    % Compute Accesses between Ground Stations and Satellites
+    for i = 1:length(gs)
+        ac = access(gs(i), satellites);
+        ac.LineColor = 'r';
+    end
+
+    % Compute Accesses between Satellites in the same orbital plane
+    for plane_idx = 1:number_of_planes
+        start_idx = (plane_idx - 1) * number_of_SATs + 1;
+        end_idx = plane_idx * number_of_SATs;
+
+        for sat_idx = start_idx:end_idx
+            if sat_idx == start_idx
+                neighbors = [satellites(start_idx + 1), satellites(end_idx)];
+            elseif sat_idx == end_idx
+                neighbors = [satellites(start_idx), satellites(end_idx - 1)];
+            else
+                neighbors = [satellites(sat_idx + 1), satellites(sat_idx - 1)];
+            end
+            ac = access(satellites(sat_idx), neighbors);
+            ac.LineColor = 'b';
+        end
+    end
+
+    % Compute Accesses between Satellites in different orbital planes
+    for plane_idx = 1:number_of_planes
+        current_plane_sats = satellites_per_plane{plane_idx};
+
+        % Connect each satellite in the current plane to the satellite in the next plane
+        next_plane_idx = mod(plane_idx, number_of_planes) + 1; % Wrap around to the first plane after the last
+        next_plane_sats = satellites_per_plane{next_plane_idx};
+
+        % Establish connections for each satellite in the current plane to a corresponding satellite in the next plane
+        for sat_idx = 1:number_of_SATs
+            ac = access(current_plane_sats(sat_idx), next_plane_sats);
+            ac.LineColor = 'g'; % Green for inter-plane communication
+            ac.LineWidth = 1;
+        end
+    end
+
+    % Generate Ground Track Visualization
+    leadTime = seconds(duration);
+    trailTime = leadTime;
+    groundTrack(satellites, "LeadTime", leadTime, "TrailTime", trailTime);
+
+    % ======= 2D Map Ground Track Plot Over Area of Interest (AoI) ========
+    % Define Area of Interest (AoI) around Paradise, CA
+    paradise_lat = 39.7596;  % Latitude of Paradise, CA
+    paradise_lon = -121.6219; % Longitude of Paradise, CA
+
+    % Define a 200 km x 200 km AoI
+    half_side_km = 100; % 100 km half-side for a 200 km x 200 km square
+    delta_lat = half_side_km / 111; % Approximate change in degrees latitude
+    delta_lon = half_side_km / (111 * cosd(paradise_lat)); % Approximate change in degrees longitude
+
+    % Set AoI boundaries
+    lat_min = paradise_lat - delta_lat;
+    lat_max = paradise_lat + delta_lat;
+    lon_min = paradise_lon - delta_lon;
+    lon_max = paradise_lon + delta_lon;
+
+    % Plot the AoI boundaries on a 2D map
+    figure;
+    geoAx = geoaxes; % Create geographic axes for plotting
+    hold(geoAx, 'on'); % Hold on for plotting multiple elements
+
+    % Plot AoI boundaries
+    geoplot(geoAx, [lat_min, lat_min, lat_max, lat_max, lat_min], ...
+            [lon_min, lon_max, lon_max, lon_min, lon_min], 'm', 'LineWidth', 2);
+
+    % Set geographic map view to satellite
+    geobasemap(geoAx, 'satellite');
+
+    % Loop through each satellite and plot its ground track over time within the AoI
+    time_steps = time_parameters.startTime:seconds(time_parameters.steptime):time_parameters.startTime + time_parameters.duration;
+
+    for s = 1:length(satellites)
+        latitudes = [];
+        longitudes = [];
+        % Gather satellite positions over time
+        for t = 1:length(time_steps)
+            satPos = states(satellites(s), time_steps(t), 'CoordinateFrame', 'geographic');
+            latitudes = [latitudes; satPos(1)];
+            longitudes = [longitudes; satPos(2)];
+        end
+        % Plot the satellite ground track
+        geoplot(geoAx, latitudes, longitudes, 'g', 'LineWidth', 1.5);
+    end
+
+    title(geoAx, 'Satellite Ground Track Over Area of Interest (200 km x 200 km around Paradise, CA)');
+    hold(geoAx, 'off');
+
+    % Play the scenario
+    play(scenario);
+end
+
